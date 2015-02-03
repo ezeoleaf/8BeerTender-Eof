@@ -1,0 +1,137 @@
+<!DOCTYPE html> 
+<html lang="es"> 
+<head> 
+	<title>8 BeerTender</title>
+	<script type='text/javascript' src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+	<script src="jquery.timer.js" type="text/javascript"></script>
+	<link href="8BeerTenderStyle.css" rel="stylesheet" type="text/css" />
+</head>
+<script>
+
+//RightBorder es donde termina el court, se usa para controlar que la cerveza desaparezca si llega ahi o donde empiezan los clientes
+
+//limitCharacterTop = 
+
+characterPosition_x = 90;
+characterPosition_y = 400;
+tablePosition_x = 140;
+tablePosition_y = 70;
+beerSpeed = 4;
+peopleSpeed = 4;
+rightBorder = 550;
+
+function loadGame()
+{
+	var addTables = "";
+	for(var i = 1; i <= 4; i++)
+	{
+		addTables += '<div class="tableHead" id="table'+i+'" style="left: '+tablePosition_x+'px; top: '+tablePosition_y+'px;"><div class="table"></div></div>'
+		tablePosition_y += 125;
+	}
+	$court.html(addTables);
+}
+
+function loadCharacter()
+{
+	addCharacter = '<div class="beer"></div><div id="playerCharacter" style="left: '+characterPosition_x+'px; top: '+characterPosition_y+'px"></div>';
+	prevHtml = $court.html();
+	$court.html(prevHtml + addCharacter);
+}
+
+
+function newGame()
+{
+	$court = $('#court');
+	$character = $('#playerCharacter');
+	loadGame();
+	loadCharacter();
+}
+
+function throwBeer()
+{
+	//Aca lanza la cerveza
+}
+
+function keyUpControl(numberControl)
+{
+	switch(numberControl)
+	{
+		case 1:
+			characterPosition_y -= 50;
+			//$character.css('top',characterPosition_y);
+			$('#playerCharacter').css('top',characterPosition_y);
+			break;
+		case 2:
+			break;
+		case 3:
+			//throwBeer();
+			break;
+	}
+}
+
+$(document).ready(function (){
+
+	newGame();
+	
+	//Timer para beer
+
+	//Timer para personas en bar
+
+	/*
+	keyUpControl
+		1 - Arriba
+		2 - Abajo
+		3 - Espacio(Lanza cerveza)
+	*/
+	$('body').keyup(function() 
+	{
+		switch(event.which) {
+			// 38 responde a la flecha para arriba
+			case 38:
+				keyUpControl(1);
+				break;
+			// 40 responde a la flecha para abajo
+			case 40:
+				keyUpControl(2);
+				break;
+			// 32 responde a la tecla espacio que despacha las cervezas
+			case 32:
+				keyUpControl(3);
+				break;
+		}
+	});
+
+	$('#btnNext').click(function (){
+		nextGame();
+	});
+	
+	$('#btnReset').click(function (){
+		newGame();
+	});
+	
+});
+</script>
+<body>
+	<div id="headCourt">
+		<div id="player">
+			<span id="playerText"></span>
+			<br />
+			<span id="playerLife"></span>
+		</div>
+		<div id="reset">
+			<input type="button" id="btnReset" name="reset" value="Reset"/>
+		</div>
+		<div id="next">
+			<input type="button" id="btnNext" name="siguiente" value="Siguiente"/>
+		</div>
+		<div id="computer">
+			<span id="computerText" align="center"></span>
+			<br />
+			<span id="computerLife"></span>
+		</div>
+	</div>
+	<div id="court">
+		
+	</div>	
+</body> 
+</html>
