@@ -26,6 +26,8 @@ peopleWidth = 40;
 losePosition = 147;
 var vBeer = [];
 var vPeople = [];
+var peopleAppeared = [];
+var lastPosition = [];
 cantOfPeople = 0;
 peopleServed = 0;
 level = 1;
@@ -33,9 +35,8 @@ cantOfPeoplePresent = 0;
 lose = 0;
 win = 0;
 actualPosition = 0;
-lastPosition = 0;
 actualAvatar = 0;
-lastAvatar = 0;
+pausedGame = 0;
 
 function loadGame()
 {
@@ -60,8 +61,6 @@ function newGame()
 {
 	$court = $('#court');
 	$character = $('#playerCharacter');
-	cantOfBeer = 0;
-	letThrowBeer = 1;
 	loadGame();
 	loadCharacter();
 }
@@ -120,14 +119,15 @@ function moveBeer()
 		posBeer_y = beerPosition.top;
 		if((posBeer_x + beerSpeed) >= (rightBorder - beerWidth))
 		{
-			//letThrowBeer = 0;
-			//$(beerName).fadeOut("fast",setLetThrowBeer());
 			$(beerName).hide();
 			beerToRemove += (i + "-")
+			
+			numberOfLevel = getLevel();
+			if(cantOfPeoplePresent < getPeoplePerLevel(numberOfLevel))
+			{
+				loadPeople();
+			}
 			continue;
-			//vBeer.splice(i,1);
-			//i--;
-			//longVBeer--;
 		}
 		else
 		{
@@ -142,22 +142,14 @@ function moveBeer()
 					posPeopleBeer_y = posPeopleBeer.top;
 					if(((posBeer_y >= posPeopleBeer_y) && (posBeer_y < (posPeopleBeer_y + 45))) && ((posBeer_x >= posPeopleBeer_x) && (posBeer_x <= (posPeopleBeer_x + 40))))
 					{
-						//letThrowBeer = 0;
-						//$(beerName).fadeOut("fast",setLetThrowBeer());
 						$(beerName).hide();
 						beerToRemove += (i + "-")
-						//vBeer.splice(i,1);
-						//i--;
-						//longVBeer--;
 						
-						//$(peopleNameBeer).fadeOut("fast",setLetThrowBeer());
 						$(peopleNameBeer).hide();
 						cantOfPeoplePresent--;
 						peopleServed++;
 						peopleToRemove += (j + "-");
-						//vPeople.splice(j,1);
-						//j--;
-						//longVPeople--;					
+						
 					}
 					else
 					{
@@ -178,7 +170,6 @@ function moveBeer()
 		var vBeerToRemove = beerToRemove.split('-');
 		for(var i = 0; i < (vBeerToRemove.length - 1); i++)
 		{
-			//var v = vBeerToRemove[i];
 			vBeer.splice(vBeerToRemove[i],1);
 		}
 	}
@@ -288,14 +279,26 @@ function loadPeople()
 	cantOfPeoplePresent++;
 	do
 	{
-		actualAvatar = (1 + Math.floor(Math.random() * 33));
-		peopleAvatar = 'url("Img/people'+actualAvatar+'.png")'; //Cambiar el 1 por la cantidad de personas que se tengan creadas en para aparecer	
-	}while(actualAvatar == lastAvatar);
+		actualAvatar = (1 + Math.floor(Math.random() * 33)); //Cambiar el 1 por la cantidad de personas que se tengan creadas en para aparecer
+		peopleAvatar = 'url("Img/people'+actualAvatar+'.png")';
+	}while($.inArray(actualAvatar,peopleAppeared) != -1);
+	
+	if(peopleAppeared.length == 10)
+	{
+		peopleAppeared.splice(0,1);
+	}
+	peopleAppeared.push(actualAvatar);
 	
 	do
 	{
 		actualPosition = (1 + Math.floor(Math.random() * 4))
-	}while(actualPosition == lastPosition);
+	}while($.inArray(actualPosition,lastPosition) != -1);
+	
+	if(lastPosition.length == 2)
+	{
+		lastPosition.splice(0,1);
+	}
+	lastPosition.push(actualPosition);
 	
 	positionOfPeople_y = getPositionOfPeople(actualPosition);
 	
@@ -306,11 +309,6 @@ function loadPeople()
 		peoplePosition_x = peoplePosition.left;
 		peoplePosition_y = peoplePosition.top;
 		
-		/*Control para ver si aparece en la misma linea y que no lo dibuje arriba, pero se saca para probar que si funciona el lastPosition
-		if(peoplePosition_y == positionOfPeople_y)
-		{
-			peoplePosition_x -= 25;
-		}*/
 		if(peoplePosition_x <= losePosition)
 		{
 			lose = 1;
@@ -319,8 +317,6 @@ function loadPeople()
 		$(peopleName).css('left',peoplePosition_x);
 	}
 	
-	lastAvatar = actualAvatar;
-	lastPosition = actualPosition;
 	vPeople.push(cantOfPeople);
 	
 	prevHtml = $court.html();
@@ -368,18 +364,21 @@ $(document).ready(function (){
 	var timer = $.timer(function(){
 		if(lose != 1 && win != 1)
 		{
-			if(vBeer.length > 0)
+			if(pausedGame == 0)
 			{
-				moveBeer();
-			}
-			
-			if(vPeople.length > 0)
-			{
-				movePeople();
-			}
-			else
-			{
-				loadPeople();
+				if(vBeer.length > 0)
+				{
+					moveBeer();
+				}
+				
+				if(vPeople.length > 0)
+				{
+					movePeople();
+				}
+				else
+				{
+					loadPeople();
+				}
 			}
 		}
 		else
@@ -394,14 +393,10 @@ $(document).ready(function (){
 				$('#textWinOrLose').html('<span>Ganaste!. Presiona Reset para volver a jugar</span>');
 			}
 		}
+		$('#peopleServedValue').html(peopleServed);
+		$('#levelValue').html(getLevel());
 	},20,true);
-	
-	/*Timer para personas en bar
-	var peopleTimer = $.timer(function()
-	{
-		
-	},20,true);
-	*/
+
 	/*
 	keyUpControl
 		1 - Arriba
@@ -413,49 +408,67 @@ $(document).ready(function (){
 		switch(event.which) {
 			// 38 responde a la flecha para arriba
 			case 38:
-				keyUpControl(1);
+				if(pausedGame == 0)
+				{
+					keyUpControl(1);
+				}
 				break;
 			// 40 responde a la flecha para abajo
 			case 40:
-				keyUpControl(2);
+				if(pausedGame == 0)
+				{
+					keyUpControl(2);
+				}
 				break;
 			// 32 responde a la tecla espacio que despacha las cervezas
 			case 32:
-				if(lose != 1 && win != 1)
+				if(pausedGame == 0)
 				{
-					keyUpControl(3);
+					if(lose != 1 && win != 1)
+					{
+						keyUpControl(3);
+					}
 				}
 				break;
+			//80 responde a la letra P, para la pausa
+			case 80:
+				if(lose != 1 && win != 1)
+				{
+					if(pausedGame == 0)
+					{
+						pausedGame = 1;
+						$('#textWinOrLose').html("<span>Pausa</span>");
+					}
+					else
+					{
+						pausedGame = 0;
+						$('#textWinOrLose').html("");
+					}
+				}
 		}
 	});
 
-	$('#btnNext').click(function (){
-		nextGame();
-	});
-	
 	$('#btnReset').click(function (){
-		newGame();
+		//newGame();
+		location.reload();
 	});
 	
 });
 </script>
 <body>
 	<div id="headCourt">
-		<div id="player">
-			<span id="playerText"></span>
+		<div id="peopleDiv">
+			<b><span class="peopleServedText">Personas Atendidas</span>
 			<br />
-			<span id="playerLife"></span>
+			<span id="peopleServedValue" class="peopleServedText"></span></b>
 		</div>
 		<div id="reset">
 			<input type="button" id="btnReset" name="reset" value="Reset"/>
 		</div>
-		<div id="next">
-			<input type="button" id="btnNext" name="siguiente" value="Siguiente"/>
-		</div>
-		<div id="computer">
-			<span id="computerText" align="center"></span>
+		<div id="levelDiv">
+			<b><span class="levelText" align="center">Nivel</span>
 			<br />
-			<span id="computerLife"></span>
+			<span id="levelValue" class="levelText"></span></b>
 		</div>
 	</div>
 	<div id="court">
