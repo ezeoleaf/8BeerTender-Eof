@@ -34,6 +34,8 @@ lose = 0;
 win = 0;
 actualPosition = 0;
 lastPosition = 0;
+actualAvatar = 0;
+lastAvatar = 0;
 
 function loadGame()
 {
@@ -284,7 +286,12 @@ function loadPeople()
 {
 	cantOfPeople++;
 	cantOfPeoplePresent++;
-	peopleAvatar = 'url("Img/people'+(1 + Math.floor(Math.random() * 33))+'.png")'; //Cambiar el 1 por la cantidad de personas que se tengan creadas en para aparecer
+	do
+	{
+		actualAvatar = (1 + Math.floor(Math.random() * 33));
+		peopleAvatar = 'url("Img/people'+actualAvatar+'.png")'; //Cambiar el 1 por la cantidad de personas que se tengan creadas en para aparecer	
+	}while(actualAvatar == lastAvatar);
+	
 	do
 	{
 		actualPosition = (1 + Math.floor(Math.random() * 4))
@@ -312,6 +319,7 @@ function loadPeople()
 		$(peopleName).css('left',peoplePosition_x);
 	}
 	
+	lastAvatar = actualAvatar;
 	lastPosition = actualPosition;
 	vPeople.push(cantOfPeople);
 	
